@@ -1,0 +1,16 @@
+### Paso 1 Activar Docker desktop luego en la consola CMD copiar y pegar el codigo.
+### Esta es la ubicacion de la carpeta donde estan los archivos a convertir (raw data) /c/Users/FernandoJoseRamirezS/Documents/Biomedico/MRI_UTE/ute_raw_data 
+
+docker run -it --rm -v /c/Users/FernandoJoseRamirezS/Documents/Biomedico/MRI_UTE/ute_raw_data:/data siemenstoismrmrd:latest
+
+### Paso 2 Transformar un archivo a la vez.
+### Nombre del archivo.dat meas_MID00014_FID03385_ute_30.dat
+
+siemens_to_ismrmrd -f /data/meas_MID00014_FID03385_ute_30.dat -o /data/output_ute_30.mrd
+
+### Paso 2 Puedes convertir un conjunto de archivos dat a mrd
+
+for file in /data/*.dat; do
+    base=$(basename "$file" .dat)
+    siemens_to_ismrmrd -f "$file" -o "/data/${base}.mrd"
+done
