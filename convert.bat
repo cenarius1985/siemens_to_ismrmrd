@@ -1,17 +1,37 @@
 @echo off
-
-REM Directorio de entrada y salida
+REM Directory for input and output files
 set input_dir=C:\Users\Ferna\Documentos\GitHub\siemens_to_ismrmrd\Conversion_dat_mrd
 set output_dir=C:\Users\Ferna\Documentos\GitHub\siemens_to_ismrmrd\Conversion_dat_mrd
+set parameter_maps_dir=C:\Users\Ferna\Documentos\GitHub\siemens_to_ismrmrd\parameter_maps
 
-REM Itera sobre todos los archivos .dat en el directorio de entrada
+REM Iterate over all .dat files in the input directory
 for %%f in (%input_dir%\*.dat) do (
-    REM Extrae el nombre del archivo sin la extensión
+    REM Extract the filename without the extension
     set filename=%%~nf
-    echo Procesando archivo %%f...
+    echo Processing file %%f...
     
-    REM Ejecuta el contenedor de Docker para convertir el archivo .dat a .h5
-    docker run --rm -v %input_dir%:/flywheel/v0/input/dat -v %output_dir%:/flywheel/v0/output siemens_to_ismrmrd siemens_to_ismrmrd -f /flywheel/v0/input/dat/%%~nf.dat -o /flywheel/v0/output/%%~nf.h5
-)
+    REM Convert first measurement
+    docker run --rm ^
+        -v %input_dir%:/flywheel/v0/input/dat ^
+        -v %output_dir%:/flywheel/v0/output ^
+        -v %parameter_maps_dir%:/flywheel/v0/input/parameter_maps ^
+        siemenstoismrmrd_v2 siemens_to_ismrmrd ^
+        -f /flywheel/v0/input/dat/%%~nf.dat ^
+        -o /flywheel/v0/output/%%~nf_measurement1.h5 ^
+        -m /flywheel/v0/input/parameter_maps/IsmrmrdParameterMap_Siemens.xml ^
+        -z 1 ^
+        --debug
 
+    REM Convert second measurement
+    docker run --rm ^
+        -v %input_dir%:/flywheel/v0/input/dat ^
+        -v %output_dir%:/flywheel/v0/output ^
+        -v %parameter_maps_dir%:/flywheel/v0/input/parameter_maps ^
+        siemenstoismrmrd_v2 siemens_to_ismrmrd ^
+        -f /flywheel/v0/input/dat/%%~nf.dat ^
+        -o /flywheel/v0/output/%%~nf_measurement2.h5 ^
+        -m /flywheel/v0/input/parameter_maps/IsmrmrdParameterMap_Siemens.xml ^
+        -z 2 ^
+        --debug
+)
 pause
